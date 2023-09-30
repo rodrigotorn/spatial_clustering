@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -7,7 +8,11 @@ from sklearn.preprocessing import robust_scale
 from sklearn.cluster import KMeans, AgglomerativeClustering
 
 
+logger = logging.getLogger(__name__)
+
+
 def read_sp_geographic_data(path: str) -> gpd.GeoDataFrame:
+  logger.info(f'Reading geographic data from {path}')
   gdf: gpd.GeoDataFrame = gpd.read_file(path)
   gdf = gdf[gdf['NM_MUNICIP'] == 'SÃO PAULO']
   gdf = gdf[['CD_GEOCODI', 'geometry']]
@@ -16,6 +21,7 @@ def read_sp_geographic_data(path: str) -> gpd.GeoDataFrame:
   return gdf
 
 def read_sp_demographic_data(path: str) -> pd.DataFrame:
+  logger.info(f'Reading demographic data from {path}')
   df: pd.DataFrame = pd.read_csv(
       path,
       encoding='latin_1',
@@ -100,6 +106,7 @@ def fill_missing_data(
     'resident_avg': 'mean',
     'income_avg': 'mean',
   }
+  logger.info('Filling missing data with neighbors data')
   df = fill_until_limit(df, sector_data, weights)
   df['house_cnt'] = df['house_cnt'].round(0)
   missing_sectors: pd.DataFrame = df[df.isna().any(axis=1)]
@@ -112,6 +119,7 @@ def agglomerative_cluster(
   initial_cluster_count: int,
   weights: sal.weights.Queen
   ) -> pd.DataFrame:
+  logger.info('Performing the agglomerative clustering')
   cluster_variables: list = [
     'sector_type',
     'house_cnt',
@@ -134,6 +142,7 @@ def recluster_small_clusters(
   min_residents_per_cluster: int,
   weights: sal.weights.Queen
   ) -> pd.DataFrame:
+  logger.info('Reclustering too small clusters')
   residents_by_cluster: pd.DataFrame.GroupBy = \
     df.groupby('cluster')['resident_cnt'].sum()
   small_clusters: pd.DataFrame.index = \
@@ -156,6 +165,7 @@ def manually_fill_remaining_sectors(
   df: pd.DataFrame,
   missing_sectors: pd.DataFrame
   ) -> pd.DataFrame:
+  logger.info('Clustering sectors with no neighbors manually')
   missing_sectors['cluster'] = [8.0, 0.0, 0.0]
   missing_sectors = missing_sectors[['id', 'geometry', 'cluster']]
   df = pd.concat([df[['id', 'geometry', 'cluster']], missing_sectors])
@@ -164,6 +174,7 @@ def manually_fill_remaining_sectors(
 def plot_regions(df: pd.DataFrame) -> None:
   f, ax = plt.subplots(1, figsize=(9, 9))
 
+  logger.info('Plotting the regions')
   df.plot(
     column='cluster',
     categorical=True,

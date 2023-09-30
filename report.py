@@ -18,18 +18,19 @@
 # %autoreload 2
 
 # %%
-import os
-import sys
 import warnings
-
-sys.path.append(os.path.join(os.path.abspath(''), 'src'))
 warnings.filterwarnings('ignore')
 
 import numpy as np
-import functions as f
 import pandas as pd
 import geopandas as gpd
 import libpysal as sal
+
+import src.functions as f
+from src.logger import get_logger
+
+import logging
+logger = get_logger('src', logging.INFO)
 
 # %%
 np.random.seed(0)
@@ -70,5 +71,3 @@ df_by_region: gpd.GeoDataFrame = \
   df_by_sector.dissolve(by='cluster', as_index=False)
 
 f.plot_regions(df_by_region)
-
-# %%
