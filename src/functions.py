@@ -16,8 +16,8 @@ def read_sp_geographic_data(path):
 
 def read_sp_demographic_data(path):
   df = pd.read_csv(
-      'data/Basico_SP1.csv',
-      encoding='latin_1', 
+      path,
+      encoding='latin_1',
       sep=';',
       decimal=','
   )
@@ -43,17 +43,25 @@ def read_sp_demographic_data(path):
 def fill_with_neighbors_data(df, agg_dict, weights):
   sector = []
   neighbor = []
-  
+
   for neighbors in df[df.isna().any(axis=1)].index:
-    sector.extend(np.full(shape=len(weights.neighbor_offsets[neighbors]), fill_value=neighbors))
+    sector.extend(
+      np.full(
+        shape=len(weights.neighbor_offsets[neighbors]),
+        fill_value=neighbors
+      )
+    )
     neighbor.extend(weights.neighbor_offsets[neighbors])
-  
+
   filler = pd.DataFrame({
     'sector': sector,
     'neighbor': neighbor
   })
   filler = filler.merge(
-    pd.DataFrame(df.iloc[:,2:]).reset_index().rename(columns={'index': 'neighbor'}),
+    pd.DataFrame(
+      df.iloc[:,2:]).reset_index().rename(
+        columns={'index': 'neighbor'}
+    ),
     on='neighbor',
     how='left'
   )
@@ -63,17 +71,18 @@ def fill_with_neighbors_data(df, agg_dict, weights):
 def fill_until_limit(df, agg_dict, weights):
   null_before = 0
   null_after = 1
-  
+
   while null_before != null_after:
     null_before = len(df[df.isna().any(axis=1)])
     df = fill_with_neighbors_data(df, agg_dict, weights)
     null_after = len(df[df.isna().any(axis=1)])
-    
+
   return df
 
 def fill_missing_data(df, weights):
   sector_data = {
-    'sector_type': lambda x: (pd.Series.mode(x)).iloc[0] if len(pd.Series.mode(x)) > 0 else x.iloc[0], 
+    'sector_type': lambda x:
+      (pd.Series.mode(x)).iloc[0] if len(pd.Series.mode(x)) > 0 else x.iloc[0],
     'house_cnt': 'mean',
     'resident_cnt': 'mean',
     'resident_avg': 'mean',
@@ -96,26 +105,28 @@ def agglomerative_cluster(df, initial_cluster_count, weights):
   ]
   scaled_df = robust_scale(df[cluster_variables])
   model = AgglomerativeClustering(
-    linkage="ward",
+    linkage='ward',
     connectivity=weights.sparse,
     n_clusters=initial_cluster_count
   )
   model.fit(scaled_df)
-  df["cluster"] = model.labels_
+  df['cluster'] = model.labels_
   return df
 
 def recluster_small_clusters(df, min_residents_per_cluster, weights):
   residents_by_cluster = df.groupby('cluster')['resident_cnt'].sum()
   small_clusters = residents_by_cluster[residents_by_cluster <= min_residents_per_cluster].index
-  
+
   while len(small_clusters) > 0:
     df.loc[df['cluster'].isin(small_clusters), 'cluster'] = np.nan
     cluster_data = {
-        'cluster': lambda x: (pd.Series.mode(x)).iloc[0] if len(pd.Series.mode(x)) > 0 else x.iloc[0], 
+        'cluster': lambda x:
+          (pd.Series.mode(x)).iloc[0] if len(pd.Series.mode(x)) > 0 else x.iloc[0],
     }
     df = fill_until_limit(df, cluster_data, weights)
     residents_by_cluster = df.groupby('cluster')['resident_cnt'].sum()
-    small_clusters = residents_by_cluster[residents_by_cluster <= min_residents_per_cluster].index
+    small_clusters = \
+      residents_by_cluster[residents_by_cluster <= min_residents_per_cluster].index
 
   return df
 
@@ -127,7 +138,7 @@ def manually_fill_remaining_sectors(df, missing_sectors):
 
 def plot_regions(df):
   f, ax = plt.subplots(1, figsize=(9, 9))
-  
+
   df.plot(
     column='cluster',
     categorical=True,
