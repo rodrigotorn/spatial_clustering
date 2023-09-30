@@ -27,28 +27,30 @@ warnings.filterwarnings('ignore')
 
 import numpy as np
 import functions as f
-from libpysal.weights import Queen
+import pandas as pd
+import geopandas as gpd
+import libpysal as sal
 
 # %%
 np.random.seed(0)
 
-INITIAL_CLUSTERS_COUNT = 200
-MIN_RESIDENTS_PER_CLUSTER = 30000
+INITIAL_CLUSTERS_COUNT: int = 200
+MIN_RESIDENTS_PER_CLUSTER: int = 30000
 
 # %%
-grid = f.read_sp_geographic_data(
+grid: gpd.GeoDataFrame = f.read_sp_geographic_data(
   'data/sp_setores_censitarios/35SEE250GC_SIR.shp'
 )
-data = f.read_sp_demographic_data('data/Basico_SP1.csv')
-df_by_sector = grid.merge(data, on='id', how='left')
+data: pd.DataFrame = f.read_sp_demographic_data('data/Basico_SP1.csv')
+df_by_sector: gpd.GeoDataFrame = grid.merge(data, on='id', how='left')
 del grid, data
 
-weights = Queen.from_dataframe(df_by_sector)
+weights: sal.weights.Queen = sal.weights.Queen.from_dataframe(df_by_sector)
 df_by_sector, missing_sectors = f.fill_missing_data(
   df_by_sector,
   weights
 )
-weights = Queen.from_dataframe(df_by_sector)
+weights = sal.weights.Queen.from_dataframe(df_by_sector)
 
 df_by_sector = f.agglomerative_cluster(
   df_by_sector,
@@ -64,6 +66,9 @@ df_by_sector = f.manually_fill_remaining_sectors(
   df_by_sector,
   missing_sectors
 )
-df_by_region = df_by_sector.dissolve(by='cluster', as_index=False)
+df_by_region: gpd.GeoDataFrame = \
+  df_by_sector.dissolve(by='cluster', as_index=False)
 
 f.plot_regions(df_by_region)
+
+# %%
