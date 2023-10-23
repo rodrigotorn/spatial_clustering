@@ -70,7 +70,7 @@ def fill_with_neighbors_data(
   })
   filler = filler.merge(
     pd.DataFrame(
-      df.iloc[:,2:]).reset_index().rename(
+      df.loc[:, list(agg_dict.keys())]).reset_index().rename(
         columns={'index': 'neighbor'}
     ),
     on='neighbor',
