@@ -14,7 +14,7 @@ logger = get_logger('src.download_inputs', logging.INFO)
 GEOGRAPHIC_DATA_URL = 'https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_de_setores_censitarios__divisoes_intramunicipais/censo_2010/setores_censitarios_shp/sp/sp_setores_censitarios.zip'
 GEOGRAPHIC_DATA_PATH = os.getcwd() + '/data/geographic_data'
 
-DEMOGRAPHIC_DATA_URL = 'https://ftp.ibge.gov.br/Censos/Censo_Demografico_2010/Resultados_do_Universo/Agregados_por_Setores_Censitarios/SP_Capital_20190823.zip'
+DEMOGRAPHIC_DATA_URL = 'https://ftp.ibge.gov.br/Censos/Censo_Demografico_2010/Resultados_do_Universo/Agregados_por_Setores_Censitarios/SP_Capital_20231030.zip'
 DEMOGRAPHIC_DATA_PATH = os.getcwd() + '/data/demographic_data'
 DEMOGRAPHIC_DATA_FILE = '/Base informaçoes setores2010 universo SP_Capital/CSV/Basico_SP1.csv'
 
