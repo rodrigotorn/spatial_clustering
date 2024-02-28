@@ -171,6 +171,22 @@ def manually_fill_remaining_sectors(
   df = pd.concat([df[['id', 'geometry', 'cluster']], missing_sectors])
   return df
 
+def plot_sectors(df: pd.DataFrame) -> None:
+  f, ax = plt.subplots(1, figsize=(9, 9))
+
+  logger.info('Plotting the sectors')
+  df.plot(
+    legend=False,
+    linewidth=0.2,
+    ax=ax,
+    edgecolor='black',
+  )
+  ax.set_axis_off()
+  plt.savefig(
+      fname='outputs/images/sectors.png',
+      bbox_inches='tight'
+  )
+
 def plot_regions(df: pd.DataFrame) -> None:
   f, ax = plt.subplots(1, figsize=(9, 9))
 
@@ -184,7 +200,10 @@ def plot_regions(df: pd.DataFrame) -> None:
     edgecolor='black',
   )
   ax.set_axis_off()
-  return plt.show()
+  plt.savefig(
+      fname='outputs/images/regions.png',
+      bbox_inches='tight'
+  )
 
 if __name__ == '__main__':
   pass

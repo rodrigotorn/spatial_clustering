@@ -27,6 +27,7 @@ import geopandas as gpd
 import libpysal as sal
 
 import src.functions as f
+import test.test_functions as test_f
 from src.logger import get_logger
 
 import logging
@@ -37,6 +38,9 @@ np.random.seed(0)
 
 INITIAL_CLUSTERS_COUNT: int = 200
 MIN_RESIDENTS_PER_CLUSTER: int = 30000
+
+# %%
+pip install pytest
 
 # %%
 grid: gpd.GeoDataFrame = f.read_sp_geographic_data(
@@ -69,5 +73,13 @@ df_by_sector = f.manually_fill_remaining_sectors(
 )
 df_by_region: gpd.GeoDataFrame = \
   df_by_sector.dissolve(by='cluster', as_index=False)
+df_by_region = df_by_region[['cluster', 'geometry']]
+df_by_region['cluster'] = [x for x in range(1, len(df_by_region['cluster']) + 1)]
 
+f.plot_sectors(df_by_sector)
 f.plot_regions(df_by_region)
+
+logger.info('Saving results file into outputs folder')
+df_by_region.to_file('outputs/regions.shp', index=False)
+
+# %%

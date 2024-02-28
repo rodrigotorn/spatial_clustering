@@ -3,7 +3,7 @@
 run: prepare-environment download-inputs execute-pipeline
 
 prepare-environment:
-	pip3 install -r requirements.txt
+	pip3 install -r requirements_dev.txt
 
 download-inputs:
 	python3 src/download_inputs.py
