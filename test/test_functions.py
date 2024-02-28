@@ -115,11 +115,12 @@ def test_fill_until_limit(simulated_data_with_missing_values):
 
 
 def test_recluster_small_clusters():
-  clustered_df = gen_simulated_sectors(3, 'resident_cnt')
+  clustered_df = gen_simulated_sectors(4, 'resident_cnt')
   clustered_df['cluster'] = [
-    1., 2., 3.,
-    1., 2., 2.,
-    1., 1., 1.,
+    1., 2., 2., 3.,
+    1., 2., 2., 2.,
+    1., 1., 2., 2.,
+    1., 1., 1., 1.,
   ]
   actual_df = f.recluster_small_clusters(
     df=clustered_df,
@@ -128,9 +129,10 @@ def test_recluster_small_clusters():
   )
   expected_df = clustered_df
   expected_df['cluster'] = [
-    1., 2., 2.,
-    1., 2., 2.,
-    1., 1., 1.,
+    1., 2., 2., 2.,
+    1., 2., 2., 2.,
+    1., 1., 2., 2.,
+    1., 1., 1., 1.,
   ]
 
   pd.testing.assert_frame_equal(

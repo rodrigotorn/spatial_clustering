@@ -205,5 +205,35 @@ def plot_regions(df: pd.DataFrame) -> None:
       bbox_inches='tight'
   )
 
+def plot_example(
+  df: pd.DataFrame,
+  fname: str,
+  annotation: str = 'value',
+  categorical: bool = False
+  ) -> None:
+  f, ax = plt.subplots(1, figsize=(9, 9))
+  ax.set_axis_off()
+
+  df.plot(
+    column=annotation,
+    categorical=categorical,
+    ax=ax
+  )
+
+  df['coords'] = df['geometry'].apply(lambda x: x.representative_point().coords[:])
+  df['coords'] = [coords[0] for coords in df['coords']]
+  for idx, row in df.iterrows():
+    plt.annotate(
+    text=row[annotation],
+    xy=row['coords'],
+    horizontalalignment='center',
+    verticalalignment='center',
+    fontsize=20
+    )
+  plt.savefig(
+      fname=f'outputs/images/{fname}',
+      bbox_inches='tight'
+  )
+
 if __name__ == '__main__':
   pass

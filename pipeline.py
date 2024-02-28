@@ -40,9 +40,6 @@ INITIAL_CLUSTERS_COUNT: int = 200
 MIN_RESIDENTS_PER_CLUSTER: int = 30000
 
 # %%
-pip install pytest
-
-# %%
 grid: gpd.GeoDataFrame = f.read_sp_geographic_data(
   'data/geographic_data/35SEE250GC_SIR.shp'
 )
@@ -83,3 +80,66 @@ logger.info('Saving results file into outputs folder')
 df_by_region.to_file('outputs/regions.shp', index=False)
 
 # %%
+f.plot_example(
+  df=test_f.gen_simulated_sectors(4),
+  fname='base_example.png'
+)
+
+missing_df_step_1 = test_f.gen_simulated_sectors(4)
+for i in [2, 3, 6, 7, 13]:
+  missing_df_step_1.loc[i, 'value'] = np.nan
+
+f.plot_example(
+  df=missing_df_step_1,
+  fname='missing_df_step_1.png'
+)
+
+missing_df_step_2 = f.fill_with_neighbors_data(
+  df=missing_df_step_1,
+  agg_dict={'value': 'mean'},
+  weights=sal.weights.Queen.from_dataframe(missing_df_step_1)
+)
+
+f.plot_example(
+  df=missing_df_step_2,
+  fname='missing_df_step_2.png'
+)
+
+missing_df_step_3 = f.fill_until_limit(
+  df=missing_df_step_1,
+  agg_dict={'value': 'mean'},
+  weights=sal.weights.Queen.from_dataframe(missing_df_step_1)
+)
+
+f.plot_example(
+  df=missing_df_step_3,
+  fname='missing_df_step_3.png'
+)
+
+clustered_df_step_1 = test_f.gen_simulated_sectors(4, 'resident_cnt')
+clustered_df_step_1['cluster'] = [
+  'A', 'B', 'B', 'C',
+  'A', 'B', 'B', 'B',
+  'A', 'A', 'B', 'B',
+  'A', 'A', 'A', 'A',
+]
+
+f.plot_example(
+  df=clustered_df_step_1,
+  fname='clustered_df_step_1.png',
+  annotation='cluster',
+  categorical=False,
+)
+
+clustered_df_step_2 = f.recluster_small_clusters(
+  df=clustered_df_step_1,
+  min_residents_per_cluster=15,
+  weights=sal.weights.Queen.from_dataframe(clustered_df_step_1)
+)
+
+f.plot_example(
+  df=clustered_df_step_2,
+  fname='clustered_df_step_2.png',
+  annotation='cluster',
+  categorical=False,
+)
