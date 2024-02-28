@@ -222,6 +222,11 @@ def plot_example(
 
   df['coords'] = df['geometry'].apply(lambda x: x.representative_point().coords[:])
   df['coords'] = [coords[0] for coords in df['coords']]
+
+  df['coords2'] = df['geometry'].apply(lambda x: x.representative_point().coords[:])
+  df['coords2'] = [(coords[0][0] - 0.40, coords[0][1] - 0.40) for coords in df['coords2']]
+
+  df['id'] = [13, 14, 15, 16, 9, 10, 11, 12, 5, 6, 7, 8, 1, 2, 3, 4]
   for idx, row in df.iterrows():
     plt.annotate(
     text=row[annotation],
@@ -229,6 +234,13 @@ def plot_example(
     horizontalalignment='center',
     verticalalignment='center',
     fontsize=20
+    )
+    plt.annotate(
+    text=row['id'],
+    xy=row['coords2'],
+    horizontalalignment='center',
+    verticalalignment='center',
+    fontsize=10
     )
   plt.savefig(
       fname=f'outputs/images/{fname}',
