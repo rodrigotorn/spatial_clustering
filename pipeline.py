@@ -64,7 +64,7 @@ df_by_sector = f.recluster_small_clusters(
   MIN_RESIDENTS_PER_CLUSTER,
   weights
 )
-df_by_sector = f.manually_fill_remaining_sectors(
+df_by_sector = f.sp_manually_fill_remaining_sectors(
   df_by_sector,
   missing_sectors
 )
@@ -73,11 +73,56 @@ df_by_region: gpd.GeoDataFrame = \
 df_by_region = df_by_region[['cluster', 'geometry']]
 df_by_region['cluster'] = [x for x in range(1, len(df_by_region['cluster']) + 1)]
 
-f.plot_sectors(df_by_sector)
-f.plot_regions(df_by_region)
+f.plot_sectors(df_by_sector, 'sp_sectors')
+f.plot_regions(df_by_region, 'sp_regions')
 
 logger.info('Saving results file into outputs folder')
-df_by_region.to_file('outputs/regions.shp', index=False)
+df_by_region.to_file('outputs/sp_regions.shp', index=False)
+
+# %%
+grid: gpd.GeoDataFrame = f.read_sp_geographic_data(
+  'data/geographic_data/53SEE250GC_SIR.shp'
+)
+data: pd.DataFrame = f.read_sp_demographic_data('data/demographic_data/Basico_DF.csv')
+df_by_sector: gpd.GeoDataFrame = grid.merge(data, on='id', how='left')
+del grid, data
+
+weights: sal.weights.Queen = sal.weights.Queen.from_dataframe(df_by_sector)
+df_by_sector, missing_sectors = f.fill_missing_data(
+  df_by_sector,
+  weights
+)
+weights = sal.weights.Queen.from_dataframe(df_by_sector)
+
+df_by_sector = f.agglomerative_cluster(
+  df_by_sector,
+  INITIAL_CLUSTERS_COUNT,
+  weights
+)
+df_by_sector = f.recluster_small_clusters(
+  df_by_sector,
+  MIN_RESIDENTS_PER_CLUSTER,
+  weights
+)
+
+df_by_sector = f.df_manually_fill_remaining_sectors(
+  df_by_sector,
+  pd.concat([
+    missing_sectors,
+    df_by_sector[df_by_sector.cluster.isna()].loc[:, 'id': 'income_avg']
+  ])
+) 
+df_by_region: gpd.GeoDataFrame = \
+  df_by_sector.dissolve(by='cluster', as_index=False)
+df_by_region = df_by_region[['cluster', 'geometry']]
+
+df_by_region['cluster'] = [x for x in range(1, len(df_by_region['cluster']) + 1)]
+
+f.plot_sectors(df_by_sector, 'df_sectors')
+f.plot_regions(df_by_region, 'df_regions')
+
+logger.info('Saving results file into outputs folder')
+df_by_region.to_file('outputs/df_regions.shp', index=False)
 
 # %%
 f.plot_example(

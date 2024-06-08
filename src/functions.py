@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def read_sp_geographic_data(path: str) -> gpd.GeoDataFrame:
   logger.info(f'Reading geographic data from {path}')
   gdf: gpd.GeoDataFrame = gpd.read_file(path)
-  gdf = gdf[gdf['NM_MUNICIP'] == 'SÃO PAULO']
+  gdf = gdf[gdf['NM_MUNICIP'].isin(['SÃO PAULO', 'BRASÍLIA'])]
   gdf = gdf[['CD_GEOCODI', 'geometry']]
   gdf.rename(columns={'CD_GEOCODI': 'id'}, inplace=True)
   gdf['id'] = gdf['id'].astype(int)
@@ -161,7 +161,7 @@ def recluster_small_clusters(
 
   return df
 
-def manually_fill_remaining_sectors(
+def sp_manually_fill_remaining_sectors(
   df: pd.DataFrame,
   missing_sectors: pd.DataFrame
   ) -> pd.DataFrame:
@@ -171,7 +171,22 @@ def manually_fill_remaining_sectors(
   df = pd.concat([df[['id', 'geometry', 'cluster']], missing_sectors])
   return df
 
-def plot_sectors(df: pd.DataFrame) -> None:
+def df_manually_fill_remaining_sectors(
+  df: pd.DataFrame,
+  missing_sectors: pd.DataFrame
+  ) -> pd.DataFrame:
+  logger.info('Clustering sectors with no neighbors manually')
+  missing_sectors['cluster'] = [
+	    176.0, 197.0, 143.0, 143.0, 192.0, 192.0, 179.0, 143.0,
+        143.0, 176.0, 176.0, 186.0, 176.0, 176.0, 188.0, 188.0,
+        188.0, 188.0, 188.0, 188.0, 113.0, 188.0, 179.0, 186.0,
+        169.0, 169.0, 169.0, 198.0, 198.0, 198.0, 198.0, 198.0, 198.0
+	]
+  missing_sectors = missing_sectors[['id', 'geometry', 'cluster']]
+  df = pd.concat([df[['id', 'geometry', 'cluster']], missing_sectors])
+  return df
+
+def plot_sectors(df: pd.DataFrame, file_name: str) -> None:
   f, ax = plt.subplots(1, figsize=(9, 9))
 
   logger.info('Plotting the sectors')
@@ -183,11 +198,11 @@ def plot_sectors(df: pd.DataFrame) -> None:
   )
   ax.set_axis_off()
   plt.savefig(
-      fname='outputs/images/sectors.png',
+      fname=f'outputs/images/{file_name}.png',
       bbox_inches='tight'
   )
 
-def plot_regions(df: pd.DataFrame) -> None:
+def plot_regions(df: pd.DataFrame, file_name: str) -> None:
   f, ax = plt.subplots(1, figsize=(9, 9))
 
   logger.info('Plotting the regions')
@@ -201,7 +216,7 @@ def plot_regions(df: pd.DataFrame) -> None:
   )
   ax.set_axis_off()
   plt.savefig(
-      fname='outputs/images/regions.png',
+      fname=f'outputs/images/{file_name}.png',
       bbox_inches='tight'
   )
 
